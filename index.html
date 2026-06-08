@@ -617,7 +617,7 @@
 
 <!-- MUSIC PLAYER -->
 <div class="music-player" id="music-player">
-  <button class="music-btn" id="music-btn" onclick="toggleMusic()">
+  <button class="music-btn" id="music-btn" onclick="musicToggle()">
     <i class="bi bi-play-fill" id="music-icon"></i>
   </button>
   <div class="music-info">
@@ -1085,48 +1085,31 @@ function closeSurat(e) {
   }
 }
 
-// ========== MUSIC ==========
-let isPlaying = false;
-let audioCtx = null;
-let oscillator = null;
+// ========== MUSIC (MP3) ==========
+const audioEl = new Audio('music/shapeofmyheart.mp3');
+audioEl.preload = 'auto';
+audioEl.loop = true;
 
 function toggleMusic() {
-  const btn = document.getElementById('music-btn');
   const icon = document.getElementById('music-icon');
   const wave = document.getElementById('music-wave');
 
-  isPlaying = !isPlaying;
-
-  if (isPlaying) {
-    icon.className = 'bi bi-pause-fill';
-    wave.classList.remove('paused');
-    // Create simple ambient sound with Web Audio API
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      // Simple pleasant chord
-      const frequencies = [261.63, 329.63, 392.0, 523.25];
-      frequencies.forEach((freq, i) => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.5);
-        osc.start();
-        oscillator = osc;
-      });
-    } catch(e) {}
+  if (audioEl.paused) {
+    audioEl.play().then(() => {
+      icon.className = 'bi bi-pause-fill';
+      wave.classList.remove('paused');
+    }).catch(() => {
+      // If playback is blocked, keep UI in paused state
+      icon.className = 'bi bi-play-fill';
+      wave.classList.add('paused');
+    });
   } else {
+    audioEl.pause();
     icon.className = 'bi bi-play-fill';
     wave.classList.add('paused');
-    if (audioCtx) {
-      audioCtx.close().catch(() => {});
-      audioCtx = null;
-    }
   }
 }
+
 
 // ========== UPDATE CLOSING DATE ==========
 const now = new Date();
